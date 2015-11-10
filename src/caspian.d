@@ -14,8 +14,11 @@ string dataSetsDir;
 void stubApi(HTTPServerRequest req, HTTPServerResponse res)
 {
 	auto data = rm.get(req.requestURL);
-	res.setCookie("osi","value","/cb");
-    res.writeJsonBody(serializeToJson(data.response), data.code); 
+    
+    if(data.cookie != "no cookie"){
+      res.setCookie(data.cookie["name"].to!string,data.cookie["value"].to!string,data.cookie["path"].to!string);
+    }
+    res.writeJsonBody(serializeToJson(data.response), data.code);
 }
 
 void setupResponses(HTTPServerRequest req, HTTPServerResponse res)
@@ -24,8 +27,10 @@ void setupResponses(HTTPServerRequest req, HTTPServerResponse res)
 	auto response = req.json["response"];
 	auto jsonCode = req.json["code"];
 	auto code = (jsonCode.type != Json.Type.Undefined) ? jsonCode.to!int : 200;
+	auto jsonCookie = req.json["cookie"];
+	auto cookie = (jsonCookie.type != Json.Type.Undefined) ? jsonCookie : serializeToJson("no cookie");
 	
-	rm.add(url, response, code);
+	rm.add(url, response, code, cookie);
 	res.writeJsonBody(serializeToJson(rm.get(url)));
 }
 
@@ -37,8 +42,8 @@ void setupDataset(HTTPServerRequest req, HTTPServerResponse res)
     auto dataSet = dataSets.filter!(d => d.baseName == name).array;
     if (dataSet.empty){
 	  throw new Exception("Could not find a dataset named: " ~ name);
-    } 
-	
+    }
+
     auto content = to!string(read(dataSet[0]));
     Json jsonSet = parseJson(content);
 
@@ -48,9 +53,11 @@ void setupDataset(HTTPServerRequest req, HTTPServerResponse res)
 		auto jsonCode = data["code"];
         auto code = (jsonCode.type != Json.Type.Undefined) ? jsonCode.to!int : 200;
 
-        rm.add(url, response, code);
+        auto jsonCookie = data["cookie"];
+	    auto cookie = (jsonCookie.type != Json.Type.Undefined) ? jsonCookie : serializeToJson("no cookie");
+        rm.add(url, response, code, cookie);
 	}
-   
+
 	res.writeJsonBody(jsonSet);
 }
 
