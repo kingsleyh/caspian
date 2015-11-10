@@ -23,12 +23,21 @@ void stubApi(HTTPServerRequest req, HTTPServerResponse res)
 
 void setupResponses(HTTPServerRequest req, HTTPServerResponse res)
 {
+
+    //writeln("about to get data from request");
+    //writeln(req);
+    //writeln(req.json);
+    //writeln(req.fullURL);
+    //writeln(req.method);
+    //writeln(req.headers);
 	auto url = req.json["url"].to!string;
 	auto response = req.json["response"];
 	auto jsonCode = req.json["code"];
 	auto code = (jsonCode.type != Json.Type.Undefined) ? jsonCode.to!int : 200;
 	auto jsonCookie = req.json["cookie"];
 	auto cookie = (jsonCookie.type != Json.Type.Undefined) ? jsonCookie : serializeToJson("no cookie");
+	
+	writeln("setting up response on url: " ~ url);
 	
 	rm.add(url, response, code, cookie);
 	res.writeJsonBody(serializeToJson(rm.get(url)));
@@ -38,7 +47,7 @@ void setupDataset(HTTPServerRequest req, HTTPServerResponse res)
 {
 	auto name = req.params["dataset"].to!string ~ ".json";
 
-    auto dataSets = dirEntries(dataSetsDir,"*.json",SpanMode.breadth);
+    auto dataSets = dirEntries(dataSetsDir,"*.json",SpanMode.depth);
     auto dataSet = dataSets.filter!(d => d.baseName == name).array;
     if (dataSet.empty){
 	  throw new Exception("Could not find a dataset named: " ~ name);
