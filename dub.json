@@ -7,5 +7,6 @@
 		"vibe-d": "~>0.7.19"
 	},
 	"targetType":"executable",
+	"targetPath":"bin",
 	"versions": ["VibeDefaultMain"]
 }
