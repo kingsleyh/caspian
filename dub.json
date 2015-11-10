@@ -1,0 +1,11 @@
+{
+	"name": "caspian",
+	"description": "A simple vibe.d server application.",
+	"copyright": "Copyright © 2015, hendriki",
+	"authors": ["hendriki"],
+	"dependencies": {
+		"vibe-d": "~>0.7.19"
+	},
+	"targetType":"executable",
+	"versions": ["VibeDefaultMain"]
+}
