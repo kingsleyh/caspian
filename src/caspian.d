@@ -9,11 +9,12 @@ import std.exception;
 import std.string;
 
 ResponseManager rm;
+string dataSetsDir;
 
 void stubApi(HTTPServerRequest req, HTTPServerResponse res)
 {
 	auto data = rm.get(req.requestURL);
-	//res.setCookie("osi","value","/cb");
+	res.setCookie("osi","value","/cb");
     res.writeJsonBody(serializeToJson(data.response), data.code); 
 }
 
@@ -21,23 +22,18 @@ void setupResponses(HTTPServerRequest req, HTTPServerResponse res)
 {
 	auto url = req.json["url"].to!string;
 	auto response = req.json["response"];
-	try{
-            auto code = req.json["code"].to!int;
-              rm.add(url, response, code);
-         	 } catch {
-               rm.add(url, response);
-         	 } 
+	auto jsonCode = req.json["code"];
+	auto code = (jsonCode.type != Json.Type.Undefined) ? jsonCode.to!int : 200;
 	
-  
+	rm.add(url, response, code);
 	res.writeJsonBody(serializeToJson(rm.get(url)));
-
 }
 
 void setupDataset(HTTPServerRequest req, HTTPServerResponse res)
 {
 	auto name = req.params["dataset"].to!string ~ ".json";
 
-    auto dataSets = dirEntries("./dataSets","*.json",SpanMode.breadth);
+    auto dataSets = dirEntries(dataSetsDir,"*.json",SpanMode.breadth);
     auto dataSet = dataSets.filter!(d => d.baseName == name).array;
     if (dataSet.empty){
 	  throw new Exception("Could not find a dataset named: " ~ name);
@@ -47,16 +43,12 @@ void setupDataset(HTTPServerRequest req, HTTPServerResponse res)
     Json jsonSet = parseJson(content);
 
     foreach (data; jsonSet) {
-
 		auto url = data["url"].get!string;
 		auto response = data["response"];
+		auto jsonCode = data["code"];
+        auto code = (jsonCode.type != Json.Type.Undefined) ? jsonCode.to!int : 200;
 
-         try{
-            int code = data["code"].get!int;
-            rm.add(url, response, code);
-         	 } catch {
-              rm.add(url, response);
-         	 } 
+        rm.add(url, response, code);
 	}
    
 	res.writeJsonBody(jsonSet);
@@ -66,10 +58,13 @@ shared static this()
 {
 	string port;
 	string webapp;
+	string datadir;
 	readOption("port", &port, "Port to run on");
     readOption("webapp", &webapp, "Target Webapp directory"); 
-     
+    readOption("datadir", &datadir, "Datasets directory");
+
     string targetWebapp = webapp.empty? "." : webapp; 
+    dataSetsDir = datadir.empty? "./data" : datadir;
 
     rm = new ResponseManager();
 
