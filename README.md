@@ -16,7 +16,7 @@ The port is the port caspian will start on. You provide a path to the root of yo
        
 There are 2 ways to set up json responses:
 
-* Using the GET to http://localhost:8001/dataset/<name_of_file> 
+* Using the GET to http://localhost:8001/dataset/name_of_file 
 * Using a dynamic POST to http://localhost:8001/setup
 
 In the GET version (I know in REST it should be PUT but the ease of use took precedence) you supply json responses in the datadir directory in json format like this:
@@ -33,6 +33,10 @@ In the GET version (I know in REST it should be PUT but the ease of use took pre
            } 
           }
         ]
+
+http GET for this file:
+
+        http://localhost:8001/dataset/login
 
 In the json array you can have as many or as few responses as you like and you dynamically override them by using option 2 the dynamic POST.
 
