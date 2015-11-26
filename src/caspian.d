@@ -7,6 +7,7 @@ import std.algorithm;
 import std.array;
 import std.exception;
 import std.string;
+import std.typecons;
 
 ResponseManager rm;
 string dataSetsDir;
@@ -21,15 +22,19 @@ void stubApi(HTTPServerRequest req, HTTPServerResponse res)
     res.writeJsonBody(serializeToJson(data.response), data.code);
 }
 
+void resetData(HTTPServerRequest req, HTTPServerResponse res)
+{
+	rm.clear();
+	res.writeJsonBody(serializeToJson(["message":"all data cleared"]));
+}
+
+void showData(HTTPServerRequest req, HTTPServerResponse res)
+{
+  res.writeJsonBody(serializeToJson(rm.show()));
+}
+
 void setupResponses(HTTPServerRequest req, HTTPServerResponse res)
 {
-
-    //writeln("about to get data from request");
-    //writeln(req);
-    //writeln(req.json);
-    //writeln(req.fullURL);
-    //writeln(req.method);
-    //writeln(req.headers);
 	auto url = req.json["url"].to!string;
 	auto response = req.json["response"];
 	auto jsonCode = req.json["code"];
@@ -90,6 +95,8 @@ shared static this()
     auto router = new URLRouter;
 	router
 	.get("/dataset/:dataset", &setupDataset)
+	.get("/data/reset", &resetData)
+	.get("/data/show", &showData)
 	.post("/setup", &setupResponses)
 	.any("/cb/api/*", &stubApi)
 	.get("/", (HTTPServerRequest req, HTTPServerResponse res) { 

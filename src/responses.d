@@ -28,6 +28,10 @@ class ResponseManager{
    	 return result;
   }
 
+  Response[] show(){
+    return responses;
+  }
+
   void clear(){
    responses = [];
   }
