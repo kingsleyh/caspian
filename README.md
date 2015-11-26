@@ -45,6 +45,14 @@ The code and cookie are optional. If not included it defaults to status code 200
 In the POST version you just need to make a post request with the json in the body e.g.:
 
         curl -H "Content-Type: application/json" -X POST -d '{"url":"/api/login/user", "response":[{"email" : "superman@krypton.com","name" : "Superman","role" : "Saviour"}]}' http://localhost:8001/setup
+
+You can also view all the setup data via a GET 
+
+        http://localhost:8001/data/show
+
+And you can clear the data via a GET (same reason for GET over DELETE as before)
+
+        http://localhost:8001/data/reset
         
 ### Background
 
