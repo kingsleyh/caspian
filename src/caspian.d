@@ -11,10 +11,16 @@ import std.typecons;
 
 ResponseManager rm;
 string dataSetsDir;
+string targetPrefix;
 
 void stubApi(HTTPServerRequest req, HTTPServerResponse res)
 {
-	auto data = rm.get(req.requestURL);
+    string request = req.requestURL;
+    if(startsWith(req.requestURL, targetPrefix)){
+      request = request.replace(targetPrefix,"");
+    }
+
+	auto data = rm.get(request);
     
     if(data.cookie != "no cookie"){
       res.setCookie(data.cookie["name"].to!string,data.cookie["value"].to!string,data.cookie["path"].to!string);
@@ -80,17 +86,23 @@ shared static this()
 	string port;
 	string webapp;
 	string datadir;
+	string prefix;
+	string apiBase;
 	readOption("port", &port, "Port to run on");
     readOption("webapp", &webapp, "Target Webapp directory"); 
     readOption("datadir", &datadir, "Datasets directory");
+    readOption("prefix", &datadir, "Prefix");
+    readOption("apiBase", &datadir, "APi base url");
 
     string targetWebapp = webapp.empty? "." : webapp; 
     dataSetsDir = datadir.empty? "./data" : datadir;
+    targetPrefix = prefix.empty? "/cb" : prefix;
+    string targetApiBase = apiBase.empty? "/cb/api/*" : apiBase;
 
     rm = new ResponseManager();
 
     auto fileServerSettings = new HTTPFileServerSettings;
-    fileServerSettings.serverPathPrefix = "/cb";
+    fileServerSettings.serverPathPrefix = targetPrefix;
 
     auto router = new URLRouter;
 	router
@@ -98,9 +110,9 @@ shared static this()
 	.get("/data/reset", &resetData)
 	.get("/data/show", &showData)
 	.post("/setup", &setupResponses)
-	.any("/cb/api/*", &stubApi)
+	.any(targetApiBase, &stubApi)
 	.get("/", (HTTPServerRequest req, HTTPServerResponse res) { 
-			res.redirect("/cb/");
+			res.redirect(targetPrefix ~ "/");
 		})	
 	.get("*", serveStaticFiles(targetWebapp, fileServerSettings));
 
